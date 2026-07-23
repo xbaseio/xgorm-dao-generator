@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 )
 
@@ -167,9 +167,7 @@ func (m *model) packages() (str string) {
 		packages = append(packages, pkg)
 	}
 
-	sort.Slice(packages, func(i, j int) bool {
-		return packages[i] < packages[j]
-	})
+	slices.Sort(packages)
 
 	for _, pkg := range packages {
 		if alias := m.imports[pkg]; alias != "" {

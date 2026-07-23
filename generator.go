@@ -274,7 +274,7 @@ func (g *generator) parseModels() []*model {
 						tag := reflect.StructTag(runes[1 : len(runes)-1])
 
 						if v := tag.Get("gorm"); v != "" {
-							for _, item := range strings.Split(v, ";") {
+							for item := range strings.SplitSeq(v, ";") {
 								vv := strings.Split(item, ":")
 								if len(vv) >= 2 && vv[0] == "column" {
 									field.column = vv[1]
