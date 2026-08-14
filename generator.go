@@ -3,6 +3,7 @@ package main
 import (
 	"go/ast"
 	"go/token"
+	"go/types"
 	"log"
 	"os"
 	"path/filepath"
@@ -52,6 +53,7 @@ type options struct {
 	daoPkgPath         string
 	daoMysqlImpPkgPath string
 	subPkgEnable       bool
+	includeAnonymous   bool
 	subPkgStyle        style
 	fileNameStyle      style
 	instanceFunc       string
@@ -257,6 +259,12 @@ func (g *generator) parseModels() []*model {
 				model.setDaoPkgPath(daoPkgPath)
 
 				for _, item := range st.Fields.List {
+					if len(item.Names) == 0 {
+						if g.opts.includeAnonymous {
+							model.addFields(parseEmbeddedFields(pkg.TypesInfo.TypeOf(item.Type))...)
+						}
+						continue
+					}
 					name := item.Names[0].Name
 
 					if !isExportable(name) {
@@ -305,6 +313,44 @@ func (g *generator) parseModels() []*model {
 	}
 
 	return models
+}
+
+func parseEmbeddedFields(t types.Type) []*field {
+	if pointer, ok := t.(*types.Pointer); ok {
+		t = pointer.Elem()
+	}
+	st, ok := t.Underlying().(*types.Struct)
+	if !ok {
+		return nil
+	}
+
+	fields := make([]*field, 0, st.NumFields())
+	for i := 0; i < st.NumFields(); i++ {
+		item := st.Field(i)
+		if !item.Exported() {
+			continue
+		}
+		if item.Embedded() {
+			fields = append(fields, parseEmbeddedFields(item.Type())...)
+			continue
+		}
+
+		name := item.Name()
+		column := toUnderscoreCase(name)
+		if tag := reflect.StructTag(st.Tag(i)).Get("gorm"); tag != "" {
+			if tag == "-" {
+				continue
+			}
+			for option := range strings.SplitSeq(tag, ";") {
+				parts := strings.SplitN(option, ":", 2)
+				if len(parts) == 2 && parts[0] == "column" {
+					column = parts[1]
+				}
+			}
+		}
+		fields = append(fields, &field{name: name, column: column})
+	}
+	return fields
 }
 
 func (g *generator) loadPackage() *packages.Package {

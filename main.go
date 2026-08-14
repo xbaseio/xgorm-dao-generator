@@ -33,6 +33,9 @@ var (
 	subPkgEnable = flag.Bool("sub-pkg-enable",
 		false,
 		"specify whether to enable sub-pkg; default disable")
+	includeAnonymous = flag.Bool("include-anonymous",
+		false,
+		"include fields from anonymous embedded structs; default disable")
 	subPkgStyle = flag.String("sub-pkg-style",
 		"kebab",
 		"specify the generation style for sub-pkg; options: kebab | underscore | lower | camel | pascal; default is kebab")
@@ -85,6 +88,7 @@ func main() {
 		modelPkgPath:       *modelPkgPath,
 		modelPkgAlias:      *modelPkgAlias,
 		subPkgEnable:       *subPkgEnable,
+		includeAnonymous:   *includeAnonymous,
 		subPkgStyle:        style(*subPkgStyle),
 		fileNameStyle:      style(*fileNameStyle),
 		instanceFunc:       *instanceFunc,
