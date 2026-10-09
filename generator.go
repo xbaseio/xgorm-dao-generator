@@ -365,6 +365,12 @@ func (g *generator) loadPackage() *packages.Package {
 	if len(pkgs) != 1 {
 		log.Fatalf("error: %d packages found", len(pkgs))
 	}
+	if len(pkgs[0].Errors) > 0 {
+		for _, pkgErr := range pkgs[0].Errors {
+			log.Printf("package load error: %s", pkgErr)
+		}
+		log.Fatal("failed to load model package; see package load errors above")
+	}
 
 	return pkgs[0]
 }
