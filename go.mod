@@ -1,6 +1,6 @@
 module github.com/xbaseio/xgorm-dao-generator
 
-go 1.25.0
+go 1.27.0
 
 require golang.org/x/tools v0.36.0
 
